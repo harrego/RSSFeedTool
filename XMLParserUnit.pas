@@ -4,7 +4,7 @@ interface
 
 uses SysUtils;
 
-type XMLParserState = (sContent, sTagName);
+type XMLParserState = (sContent, sTagName, sTagAttributeKey, sTagAttributeValue);
 
 type XMLAttribute = record
   key: PChar;
@@ -25,6 +25,8 @@ type
     procedure XMLTagOpen(Tag: PChar; TagLen: Integer); virtual;
     procedure XMLTagClose(Tag: PChar; TagLen: Integer); virtual;
     procedure XMLContent(Content: PChar; ContentLen: Integer); virtual;
+    procedure XMLAttributeKey(Key: PChar; KeyLen: Integer); virtual;
+    procedure XMLAttributeValue(Value: PChar; ValueLen: Integer); virtual;
 end;
 
 implementation
@@ -73,13 +75,44 @@ begin
     end
     else if State = sTagName then
     begin
-      if CharI = '>' then
+      if (CharI = '>') or (CharI = ' ') then
       begin
         DataLen := CalculateDataLen(I, DataOffset);
         if Str[DataOffset + 1] = '/' then XMLTagClose(Str + DataOffset + 2, DataLen - 1)
         else XMLTagOpen(Str + DataOffset + 1, DataLen);
         DataOffset := DataOffset + DataLen + 1;
-        State := sContent;
+
+        case CharI of
+          '>': State := sContent;
+          ' ': State := sTagAttributeKey;
+        end;
+      end;
+    end
+    else if State = sTagAttributeKey then
+    begin
+      if (CharI = '>') or (CharI = ' ') or (CharI = '=') then
+      begin
+        DataLen := CalculateDataLen(I, DataOffset);
+        XMLAttributeKey(Str + DataOffset + 1, DataLen);
+        DataOffset := DataOffset + DataLen + 1;
+        case CharI of
+          '>': State := sContent;
+          ' ': State := sTagAttributeKey;
+          '=': State := sTagAttributeValue;
+        end;
+      end
+    end
+    else if State = sTagAttributeValue then
+    begin
+      if (CharI = '>') or (CharI = ' ') then
+      begin
+        DataLen := CalculateDataLen(I, DataOffset);
+        XMLAttributeValue(Str + DataOffset + 1, DataLen);
+        DataOffset := DataOffset + DataLen + 1;
+        case CharI of
+          '>': State := sContent;
+          ' ': State := sTagAttributeKey;
+        end;
       end;
     end;
   end;
@@ -94,6 +127,14 @@ begin
 end;
 
 procedure XMLParser.XMLContent(Content: PChar; ContentLen: Integer);
+begin
+end;
+
+procedure XMLParser.XMLAttributeKey(Key: PChar; KeyLen: Integer);
+begin
+end;
+
+procedure XMLParser.XMLAttributeValue(Value: PChar; ValueLen: Integer);
 begin
 end;
 

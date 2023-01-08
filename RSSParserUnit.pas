@@ -9,6 +9,8 @@ type RSSParser = class(XMLParserUnit.XMLParser)
     procedure XMLTagOpen(Tag: PChar; TagLen: Integer); override;
     procedure XMLTagClose(Tag: PChar; TagLen: Integer); override;
     procedure XMLContent(Content: PChar; ContentLen: Integer); override;
+    procedure XMLAttributeKey(Key: PChar; KeyLen: Integer); override;
+    procedure XMLAttributeValue(Value: PChar; ValueLen: Integer); override;
 end;
 
 implementation
@@ -38,6 +40,24 @@ begin
   Writeln('xml content:');
   Writeln(ContentStr);
   DataBufferDispose(ContentStr);
+end;
+
+procedure RSSParser.XMLAttributeKey(Key: PChar; KeyLen: Integer);
+var KeyStr: PChar;
+begin
+  KeyStr := DataBufferNew(Key, KeyLen);
+  Writeln('xml key:');
+  Writeln(KeyStr);
+  DataBufferDispose(KeyStr);
+end;
+
+procedure RSSParser.XMLAttributeValue(Value: PChar; ValueLen: Integer);
+var ValueStr: PChar;
+begin
+  ValueStr := DataBufferNew(Value, ValueLen);
+  Writeln('xml value:');
+  Writeln(ValueStr);
+  DataBufferDispose(ValueStr);
 end;
 
 end.
