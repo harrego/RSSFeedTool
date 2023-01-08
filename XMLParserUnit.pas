@@ -14,6 +14,7 @@ end;
 type
   XMLParser = class(TObject)
   private
+    State: XMLParserState;
     function CalculateDataLen(I: Integer; DataOffset: Integer): Integer;
   public
     function DataBufferNew(Data: PChar; DataLen: Integer): PChar;
@@ -33,7 +34,7 @@ implementation
 
 function XMLParser.CalculateDataLen(I: Integer; DataOffset: Integer): Integer;
 begin
-  Result := (I - DataOffset) - 1;
+  Result := I - DataOffset;
 end;
 
 function XMLParser.DataBufferNew(Data: PChar; DataLen: Integer): PChar;
@@ -51,15 +52,15 @@ end;
 procedure XMLParser.ParseXML(Str: PChar);
 var I: Integer;
 var CharI: Char;
+var Data: PChar;
 var DataOffset: Integer;
 var DataLen: Integer;
-var State: XMLParserState;
 begin
-  State := sContent;
-  DataOffset := 0;
+  DataOffset := 1;
+  I := 0;
   for I := 0 to Length(Str) do
   begin
-    CharI := Str[i];
+    CharI := Str[I];
     if State = sContent then
     begin
       if CharI = '<' then
@@ -67,7 +68,7 @@ begin
         DataLen := CalculateDataLen(I, DataOffset);
         if DataLen > 0 then
         begin
-          XMLContent(Str + DataOffset + 1, DataLen);
+          XMLContent(Str + DataOffset, DataLen);
           DataOffset := DataOffset + DataLen + 1;
         end;
         State := sTagName;
@@ -78,8 +79,8 @@ begin
       if (CharI = '>') or (CharI = ' ') then
       begin
         DataLen := CalculateDataLen(I, DataOffset);
-        if Str[DataOffset + 1] = '/' then XMLTagClose(Str + DataOffset + 2, DataLen - 1)
-        else XMLTagOpen(Str + DataOffset + 1, DataLen);
+        if Str[DataOffset] = '/' then XMLTagClose(Str + DataOffset + 1, DataLen - 1)
+        else XMLTagOpen(Str + DataOffset, DataLen);
         DataOffset := DataOffset + DataLen + 1;
 
         case CharI of
@@ -93,7 +94,7 @@ begin
       if (CharI = '>') or (CharI = ' ') or (CharI = '=') then
       begin
         DataLen := CalculateDataLen(I, DataOffset);
-        XMLAttributeKey(Str + DataOffset + 1, DataLen);
+        XMLAttributeKey(Str + DataOffset, DataLen);
         DataOffset := DataOffset + DataLen + 1;
         case CharI of
           '>': State := sContent;
@@ -107,7 +108,12 @@ begin
       if (CharI = '>') or (CharI = ' ') then
       begin
         DataLen := CalculateDataLen(I, DataOffset);
-        XMLAttributeValue(Str + DataOffset + 1, DataLen);
+        Data := Str + DataOffset;
+        if (Data[0] = #39) or (Data[0] = '"') then
+        begin
+          XMLAttributeValue(Str + DataOffset + 1, DataLen - 2);
+        end
+        else XMLAttributeValue(Str + DataOffset, DataLen);
         DataOffset := DataOffset + DataLen + 1;
         case CharI of
           '>': State := sContent;
@@ -115,6 +121,12 @@ begin
         end;
       end;
     end;
+  end;
+  { end of the character stream }
+  DataLen := CalculateDataLen(I, DataOffset);
+  if (I > DataOffset) and (Length(Str) > 0) then
+  begin
+    Writeln('warning! data was unprocessed!');
   end;
 end;
 

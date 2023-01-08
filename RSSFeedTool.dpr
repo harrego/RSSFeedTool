@@ -27,9 +27,11 @@ begin
   AllocConsole;
 
   { Data code }
-  RSSString := '<title test=hello>ex<b>am</b>p<i>l</i>e</title>';
+
+  RSSString := '<title test='#39'hello'#39'>ex<b>am</b>p<i>l</i>e</title>';
   RSSParser := RSSParserUnit.RSSParser.Create;
   RSSParser.ParseXML(RSSString);
+  RSSParser.ParseXML('<author>hello</author>');
 
   FeedForm.ConfigurePostsListBox;
 
