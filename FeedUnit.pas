@@ -21,6 +21,7 @@ type
     PostTitleEdit: TEdit;
     PostContentEdit: TEdit;
     Button3: TButton;
+    Label4: TLabel;
 
     procedure UpdateCurrentPost(Post: TFeedPostUnit.TFeedPost);
     procedure ConfigurePostsListBox;

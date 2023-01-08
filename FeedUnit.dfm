@@ -37,6 +37,13 @@ object FeedForm: TFeedForm
     Height = 13
     Caption = 'Publish date:'
   end
+  object Label4: TLabel
+    Left = 280
+    Top = 216
+    Width = 65
+    Height = 17
+    Caption = 'Label4'
+  end
   object PostsListBox: TListBox
     Left = 0
     Top = 24
